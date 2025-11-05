@@ -167,7 +167,8 @@ export function createLeaderElector(options?: ElectorOptions): Elector {
       return;
     }
 
-    const winner = [...candidates].sort().at(-1)!;
+    const sorted = [...candidates].sort();
+    const winner = sorted[sorted.length - 1]!;
     if (winner === me) {
       const curr = readLeader();
       const newEpoch = Math.max(seenEpoch, curr?.epoch ?? 0) + 1;
