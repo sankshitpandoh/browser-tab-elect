@@ -34,6 +34,12 @@ unsubscribe();
 elector.stop();
 ```
 
+### Notes
+
+- `start()` is idempotent. Calling it multiple times is safe and will not attach duplicate listeners or timers.
+- `stop()` fully cleans up timers, storage listeners, and channel listeners; you can safely call `start()` again later.
+- If the leader record in `localStorage` is removed, remaining tabs will automatically run a fresh election.
+
 ### Options
 ```ts
 createLeaderElector({
@@ -63,6 +69,16 @@ function Component() {
   return <div>{isLeader ? 'Leader' : 'Follower'}</div>;
 }
 ```
+
+### Options and identity
+
+`useSingleTabLeader(options)` reuses (or creates) an elector instance keyed by the full option set. Changing any of these will create and start a new elector instance:
+
+- `storageKey`, `channelName`
+- `leaseMs`, `renewEveryMs`
+- `electionMinBackoffMs`, `electionMaxBackoffMs`
+
+This ensures the hook reflects configuration changes deterministically without leaking prior listeners.
 
 ## Protocol (high-level)
 - Each tab has a UUID and competes to lead when there's no valid leader.

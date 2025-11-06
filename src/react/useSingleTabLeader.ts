@@ -39,7 +39,14 @@ export function useSingleTabLeader(options?: ElectorOptions): { isLeader: boolea
     if (!isBrowser) return null;
     return getOrCreateElector(options);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [options?.storageKey, options?.channelName]);
+  }, [
+    options?.storageKey,
+    options?.channelName,
+    options?.leaseMs,
+    options?.renewEveryMs,
+    options?.electionMinBackoffMs,
+    options?.electionMaxBackoffMs,
+  ]);
 
   useEffect(() => {
     if (!isBrowser || !elector) return;
