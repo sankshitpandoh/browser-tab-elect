@@ -9,8 +9,8 @@ const started = new WeakMap<Elector, boolean>();
 
 function getKey(opts?: ElectorOptions): string {
   return JSON.stringify({
-    storageKey: opts?.storageKey ?? 'crest:leader',
-    channelName: opts?.channelName ?? 'crest_leadership',
+    storageKey: opts?.storageKey ?? 'citadel:leader',
+    channelName: opts?.channelName ?? 'citadel_leadership',
     leaseMs: opts?.leaseMs ?? 8000,
     renewEveryMs: opts?.renewEveryMs ?? 3000,
     electionMinBackoffMs: opts?.electionMinBackoffMs ?? 80,
@@ -39,7 +39,14 @@ export function useSingleTabLeader(options?: ElectorOptions): { isLeader: boolea
     if (!isBrowser) return null;
     return getOrCreateElector(options);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [options?.storageKey, options?.channelName]);
+  }, [
+    options?.storageKey,
+    options?.channelName,
+    options?.leaseMs,
+    options?.renewEveryMs,
+    options?.electionMinBackoffMs,
+    options?.electionMaxBackoffMs,
+  ]);
 
   useEffect(() => {
     if (!isBrowser || !elector) return;

@@ -22,12 +22,15 @@ function safeRandomId(): string {
 export function createLeaderElector(options?: ElectorOptions): Elector {
   const isBrowser = isBrowserEnv();
 
-  const storageKey = options?.storageKey ?? 'crest:leader';
-  const channelName = options?.channelName ?? 'crest_leadership';
+  const storageKey = options?.storageKey ?? 'citadel:leader';
+  const channelName = options?.channelName ?? 'citadel_leadership';
   const leaseMs = options?.leaseMs ?? 8000;
   const renewEveryMs = options?.renewEveryMs ?? 3000;
   const electionMinBackoffMs = options?.electionMinBackoffMs ?? 80;
   const electionMaxBackoffMs = options?.electionMaxBackoffMs ?? 200;
+  // Normalize backoff bounds to avoid negative windows or inverted min/max
+  const normalizedMinBackoffMs = Math.max(0, electionMinBackoffMs);
+  const normalizedMaxBackoffMs = Math.max(normalizedMinBackoffMs, electionMaxBackoffMs);
 
   // SSR/no-browser safe no-op elector
   if (!isBrowser) {
@@ -47,6 +50,8 @@ export function createLeaderElector(options?: ElectorOptions): Elector {
   let leaderAliveTimeoutId: number | null = null;
   let electionInProgress = false;
   let closed = false;
+  let started = false;
+  let onBeforeUnloadHandler: (() => void) | null = null;
 
   const tabId = safeRandomId();
   let epoch = 0;
@@ -154,7 +159,7 @@ export function createLeaderElector(options?: ElectorOptions): Elector {
     try { channel?.addEventListener('message', onCandidate as EventListener); } catch {}
 
     const backoff = Math.floor(
-      electionMinBackoffMs + Math.random() * (electionMaxBackoffMs - electionMinBackoffMs)
+      normalizedMinBackoffMs + Math.random() * (normalizedMaxBackoffMs - normalizedMinBackoffMs)
     );
     await new Promise(r => setTimeout(r, backoff));
 
@@ -209,7 +214,14 @@ export function createLeaderElector(options?: ElectorOptions): Elector {
   }
 
   function onStorageEvent(e: StorageEvent) {
-    if (e.key !== storageKey || !e.newValue) return;
+    if (e.key !== storageKey) return;
+    // If the record was cleared, trigger a fresh election window
+    if (!e.newValue) {
+      if (!closed && !electionInProgress) {
+        startElection('record_cleared');
+      }
+      return;
+    }
     try {
       const rec = JSON.parse(e.newValue) as LeaderRecord;
       if (rec.leaseUntil > getNow() && rec.tabId !== tabId) {
@@ -220,7 +232,8 @@ export function createLeaderElector(options?: ElectorOptions): Elector {
   }
 
   function start() {
-    if (closed) return;
+    if (closed || started) return;
+    started = true;
     try {
       channel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel(channelName) : null;
     } catch {
@@ -242,22 +255,27 @@ export function createLeaderElector(options?: ElectorOptions): Elector {
       startElection('init');
     }
 
-    const onUnload = () => {
+    onBeforeUnloadHandler = () => {
       closed = true;
       if (isLeader && channel) {
         try { channel.postMessage({ type: 'STEP_DOWN', payload: { tabId } }); } catch {}
       }
       stopLeading('unload');
     };
-    window.addEventListener('beforeunload', onUnload);
+    window.addEventListener('beforeunload', onBeforeUnloadHandler);
   }
 
   function stop() {
     closed = true;
+    started = false;
     try { channel?.removeEventListener('message', onChannelMessage as EventListener); } catch {}
     try { channel?.close(); } catch {}
     channel = null;
     window.removeEventListener('storage', onStorageEvent);
+    if (onBeforeUnloadHandler) {
+      window.removeEventListener('beforeunload', onBeforeUnloadHandler);
+      onBeforeUnloadHandler = null;
+    }
     if (leaderAliveTimeoutId) {
       window.clearTimeout(leaderAliveTimeoutId);
       leaderAliveTimeoutId = null;
