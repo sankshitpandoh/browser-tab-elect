@@ -1,6 +1,6 @@
 {
   "name": "browser-tab-elect",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Tab-elect solves the problem of only wanting one browser tab to run a job, and ensure that there is always one browser tab running it even if the previous running tab was closed. This package takes care of the inter-tab communication required to elect one tab as the leader and ensure that there is always a leader even if the previous leader quits. A browser tab gets notified when it has been elected as the new leader, and this allows the tab to run whatever code the leader should run. When another tab takes the leadership position, the previous leader gets notified that it has been deposed.",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
