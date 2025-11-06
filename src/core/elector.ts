@@ -22,8 +22,8 @@ function safeRandomId(): string {
 export function createLeaderElector(options?: ElectorOptions): Elector {
   const isBrowser = isBrowserEnv();
 
-  const storageKey = options?.storageKey ?? 'crest:leader';
-  const channelName = options?.channelName ?? 'crest_leadership';
+  const storageKey = options?.storageKey ?? 'citadel:leader';
+  const channelName = options?.channelName ?? 'citadel_leadership';
   const leaseMs = options?.leaseMs ?? 8000;
   const renewEveryMs = options?.renewEveryMs ?? 3000;
   const electionMinBackoffMs = options?.electionMinBackoffMs ?? 80;

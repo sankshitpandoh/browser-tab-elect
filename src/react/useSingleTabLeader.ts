@@ -9,8 +9,8 @@ const started = new WeakMap<Elector, boolean>();
 
 function getKey(opts?: ElectorOptions): string {
   return JSON.stringify({
-    storageKey: opts?.storageKey ?? 'crest:leader',
-    channelName: opts?.channelName ?? 'crest_leadership',
+    storageKey: opts?.storageKey ?? 'citadel:leader',
+    channelName: opts?.channelName ?? 'citadel_leadership',
     leaseMs: opts?.leaseMs ?? 8000,
     renewEveryMs: opts?.renewEveryMs ?? 3000,
     electionMinBackoffMs: opts?.electionMinBackoffMs ?? 80,

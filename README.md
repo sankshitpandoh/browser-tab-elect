@@ -37,8 +37,8 @@ elector.stop();
 ### Options
 ```ts
 createLeaderElector({
-  storageKey: 'crest:leader',          // localStorage key
-  channelName: 'crest_leadership',     // BroadcastChannel name
+  storageKey: 'citadel:leader',          // localStorage key
+  channelName: 'citadel_leadership',     // BroadcastChannel name
   leaseMs: 8000,                       // leader lease duration
   renewEveryMs: 3000,                  // heartbeat interval
   electionMinBackoffMs: 80,            // election backoff window

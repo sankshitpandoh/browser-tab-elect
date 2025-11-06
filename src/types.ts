@@ -1,8 +1,8 @@
 export type LeaderRecord = { tabId: string; epoch: number; leaseUntil: number };
 
 export type ElectorOptions = {
-  storageKey?: string; // default 'crest:leader'
-  channelName?: string; // default 'crest_leadership'
+  storageKey?: string; // default 'citadel:leader'
+  channelName?: string; // default 'citadel_leadership'
   leaseMs?: number; // default 8000
   renewEveryMs?: number; // default 3000
   electionMinBackoffMs?: number; // default 80
